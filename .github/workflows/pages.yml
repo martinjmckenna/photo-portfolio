@@ -16,8 +16,8 @@
 name: Deploy to GitHub Pages
 
 on:
-  # Manual only until the first green run confirms the source switch took
-  # effect; the push trigger goes in once it does.
+  push:
+    branches: [claude/photography-portfolio-frontend-815muc]
   workflow_dispatch:
 
 permissions:

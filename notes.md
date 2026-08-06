@@ -242,3 +242,45 @@ page taking that prefix.
 - The trigger is `workflow_dispatch` only for now, deliberately: until the source is
   switched, a push-triggered run would just fail and add noise next to the legacy pipeline's
   own failures. The push trigger goes in after the first green run.
+
+## 9. Pages deployment fixed
+
+Switching the Pages source to "GitHub Actions" and deploying through
+`upload-pages-artifact` + `deploy-pages` worked. Run `31115700017` on `528bfd4`:
+
+```
+Reported success!
+Evaluated environment url: http://www.martinmckenna.blog/photo-portfolio/
+```
+
+The deploy step took 3m10s. Worth noting what it did *not* do differently: it polled
+`Current status: deployment_in_progress` exactly like the legacy pipeline, and simply
+finished instead of being killed at the ten-minute ceiling. Same site, same artifact
+contents, different publish path.
+
+So the root cause in GitHub's legacy `dynamic/pages/pages-build-deployment` pipeline is
+still unknown — this routes around it rather than explaining it. If it matters later, the
+evidence is runs `31112057191` and `31114481029`, both dying at exactly 10.1 minutes after
+uploading a valid 7,293,852-byte artifact.
+
+Follow-ups applied:
+
+- Push trigger added to the workflow now that the source switch is confirmed working, so
+  commits to this branch deploy on their own.
+- The run logs a warning that `actions/checkout@v4`, `configure-pages@v5`,
+  `deploy-pages@v4` and `upload-artifact@v4` target Node 20 and are being forced onto Node
+  24. These are the current major versions of each action, so there is nothing to bump —
+  it resolves when the actions themselves ship Node 24 builds.
+
+### Not verified from here
+
+The sandbox's network policy denies `www.martinmckenna.blog` and `martinjmckenna.github.io`,
+so every request came back a proxy 403. GitHub reports the deployment as successful, but
+nobody has yet loaded the site itself. Still worth an eye on, in a browser:
+
+- Whether the grid, a detail page and the morph behave as they did locally.
+- Whether `https://` works. GitHub evaluated the URL as `http://` because "Enforce HTTPS" is
+  unchecked on this repo; the certificate belongs to the domain and the blog already serves
+  it, so HTTPS will probably just work, but that checkbox is where to look if it does not.
+- Whether the blog has a page or post on the `photo-portfolio` slug, which this project page
+  would now shadow.

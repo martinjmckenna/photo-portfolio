@@ -284,3 +284,17 @@ nobody has yet loaded the site itself. Still worth an eye on, in a browser:
   it, so HTTPS will probably just work, but that checkbox is where to look if it does not.
 - Whether the blog has a page or post on the `photo-portfolio` slug, which this project page
   would now shadow.
+
+### Verified live
+
+Loaded on an actual phone: the grid renders, the tiles hold their 4:5 crop, dark mode is
+picked up from the OS, and the site is served from `martinmckenna.blog`. The deployment is
+genuinely working, not just reported as working.
+
+That closes the last item the spec left hanging on the grid: the 220px column floor, judged
+on a real device rather than a resized desktop window. One column at phone width, which
+reads well — each photograph gets the full width and the crop has room to breathe. The
+trade-off is that a longer collection means a lot of scrolling; if that starts to feel slow
+once there are more than a dozen photographs, dropping the floor to around 160px would give
+two columns at phone width. Leaving it at 220px for now: with real photographs the larger
+single column is the better first impression.

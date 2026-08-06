@@ -1,0 +1,306 @@
+/* ---------------------------------------------------------------------------
+   Photography portfolio — single stylesheet for both page types.
+
+   Mobile-first: base rules target small viewports, anything larger is either a
+   min-width media query or a fluid mechanism that needs no query at all.
+   Monochrome only — black, white and greys, no colour anywhere.
+   --------------------------------------------------------------------------- */
+
+/* --- Tokens --------------------------------------------------------------- */
+
+:root {
+  /* Dark by default; photographs sit better against a near-black surround and
+     it is the more common convention for a gallery. Light mode below is a
+     straight inversion for anyone whose OS asks for it. */
+  color-scheme: dark light;
+
+  --bg: #0c0c0c;
+  --bg-photo: #000;      /* the letterbox surround on the detail page */
+  --fg: #f2f2f2;
+  --fg-dim: #8f8f8f;
+  --rule: #262626;
+  --tile-bg: #1a1a1a;    /* shows through while an image is still loading */
+  --scrim: rgba(0, 0, 0, 0.55);
+
+  --page-pad: clamp(1rem, 3vw, 2rem);
+  --ease: cubic-bezier(0.2, 0, 0, 1);
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg: #fbfbfb;
+    --bg-photo: #fff;
+    --fg: #111;
+    --fg-dim: #6b6b6b;
+    --rule: #e2e2e2;
+    --tile-bg: #ededed;
+    --scrim: rgba(255, 255, 255, 0.7);
+  }
+}
+
+/* --- Reset ---------------------------------------------------------------- */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  /* The OS default stack, per the spec — no webfont is downloaded. */
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  -webkit-text-size-adjust: 100%;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}
+
+a {
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 3px;
+}
+
+/* --- Homepage: header ----------------------------------------------------- */
+
+.site-header {
+  padding: var(--page-pad);
+  padding-bottom: calc(var(--page-pad) * 0.75);
+}
+
+.site-title {
+  margin: 0;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+/* --- Homepage: grid ------------------------------------------------------- */
+
+.grid {
+  list-style: none;
+  margin: 0;
+  padding: var(--page-pad);
+  padding-top: 0;
+
+  display: grid;
+  /* Fluid column count: the browser fits as many columns as the viewport
+     allows, with no breakpoints involved. The 220px floor is the one real
+     tuning knob — it lands 1 column at 375px, 3 at 768px and 5 at 1440px.
+     Worth re-checking against real photographs on an actual phone.
+     min(220px, 100%) keeps a single column from overflowing very narrow
+     viewports, where 220px + padding would exceed the available width. */
+  grid-template-columns: repeat(auto-fill, minmax(min(220px, 100%), 1fr));
+  gap: clamp(0.75rem, 1.6vw, 1.25rem);
+}
+
+.tile {
+  display: block;
+  /* Uniform 4:5 portrait crop for every thumbnail regardless of the source
+     photo's own proportions. Deliberate trade-off: a clean, even grid at the
+     cost of not showing each photo's real framing until the detail page. */
+  aspect-ratio: 4 / 5;
+  background: var(--tile-bg);
+  overflow: hidden;
+}
+
+.tile img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: opacity 300ms var(--ease), transform 400ms var(--ease);
+}
+
+/* Hover/focus feedback has to be tonal rather than chromatic on a monochrome
+   site, so it is a small lift in scale plus a dip in opacity. Pointer query
+   keeps it off touch devices, where :hover sticks after a tap. */
+@media (hover: hover) {
+  .tile:hover img {
+    opacity: 0.78;
+    transform: scale(1.02);
+  }
+}
+
+.tile:focus-visible {
+  outline-offset: 2px;
+}
+
+/* --- Photo detail page ---------------------------------------------------- */
+
+.photo-page {
+  background: var(--bg-photo);
+  /* 100vh first as the fallback, then 100dvh where supported. Without the
+     dynamic unit the image jumps or gets clipped on mobile as the address bar
+     shows and hides; without the static fallback, older browsers get nothing. */
+  height: 100vh;
+  height: 100dvh;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+
+.photo-page img {
+  /* Letterboxed: the whole frame is always visible, scaled to fit, centred,
+     with the background filling whatever is left over. */
+  max-width: 100vw;
+  max-height: 100vh;
+  max-height: 100dvh;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+}
+
+/* From tablet width up, hold the photo clear of the navigation instead of
+   letting it run under the overlay. Below this the photo stays full-bleed and
+   the nav sits on top of it behind a scrim. */
+@media (min-width: 700px) {
+  .photo-page img {
+    max-width: calc(100vw - 9rem);
+    max-height: calc(100vh - 5.5rem);
+    max-height: calc(100dvh - 5.5rem);
+  }
+}
+
+/* --- Photo detail page: navigation ---------------------------------------- */
+
+.photo-nav {
+  position: fixed;
+  inset: 0;
+  pointer-events: none; /* only the links themselves are clickable */
+  /* Keep clear of notches and home indicators. */
+  padding: max(0.75rem, env(safe-area-inset-top)) max(0.75rem, env(safe-area-inset-right))
+    max(0.75rem, env(safe-area-inset-bottom)) max(0.75rem, env(safe-area-inset-left));
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-rows: auto 1fr auto;
+  align-items: start;
+  font-size: 0.75rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.photo-nav a,
+.photo-nav .counter {
+  pointer-events: auto;
+  /* 44px minimum touch target, hit area padded out from the label. */
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+  padding: 0 0.75rem;
+  color: var(--fg);
+  text-decoration: none;
+  background: var(--scrim);
+  /* The scrim keeps labels legible over both ends of the tonal range, which a
+     monochrome site full of near-white and near-black frames will hit often. */
+  backdrop-filter: blur(6px);
+  transition: opacity 200ms var(--ease);
+}
+
+.photo-nav .counter {
+  color: var(--fg-dim);
+  font-variant-numeric: tabular-nums;
+}
+
+@media (hover: hover) {
+  .photo-nav a:hover {
+    opacity: 0.65;
+  }
+}
+
+.nav-index {
+  grid-column: 1;
+  grid-row: 1;
+  justify-self: start;
+}
+
+.photo-nav .counter {
+  grid-column: 2;
+  grid-row: 1;
+  justify-self: end;
+}
+
+.nav-prev {
+  grid-column: 1;
+  grid-row: 3;
+  justify-self: start;
+  align-self: end;
+}
+
+.nav-next {
+  grid-column: 2;
+  grid-row: 3;
+  justify-self: end;
+  align-self: end;
+}
+
+/* --- 404 ------------------------------------------------------------------ */
+
+.notice {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: grid;
+  place-content: center;
+  gap: 1.25rem;
+  padding: var(--page-pad);
+  text-align: center;
+}
+
+.notice p {
+  margin: 0;
+  color: var(--fg-dim);
+}
+
+.notice a {
+  justify-self: center;
+  font-size: 0.75rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--rule);
+  text-decoration: none;
+}
+
+/* --- View transitions ----------------------------------------------------- */
+
+/* Cross-document transitions. Chromium runs the morph; every other browser
+   ignores this block and performs an ordinary instant navigation, which is the
+   intended degrade path and needs no extra code. */
+@view-transition {
+  navigation: auto;
+}
+
+/* The photo's own group is what carries the morph — the shared
+   view-transition-name is set inline on the <img> in both documents. Note the
+   grid thumbnail is cropped (cover, 4:5) while the detail image is uncropped
+   (contain), so the browser interpolates between two differently-framed boxes:
+   it reads as a resize-and-reveal, with the cropped-off parts of the frame
+   coming into view partway through, rather than a clean match-cut. */
+::view-transition-group(*) {
+  animation-duration: 340ms;
+  animation-timing-function: var(--ease);
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 220ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  @view-transition {
+    navigation: none;
+  }
+
+  .tile img {
+    transition: none;
+  }
+}

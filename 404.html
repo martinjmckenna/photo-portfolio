@@ -11,6 +11,12 @@
 <body class="notice">
   <h1 class="site-title">Not found</h1>
   <p>There is no photograph at this address.</p>
-  <a href="/index.html">Back to the index</a>
+  <!-- The one URL on the site coupled to where it is deployed. A relative link
+       is not an option here: GitHub Pages serves this file at whatever path was
+       requested, so "index.html" would resolve against the missing URL's depth
+       rather than this file's. The site is published as a project page under
+       /photo-portfolio/, so that prefix is spelled out. If it ever moves to the
+       root of a domain, this becomes "/". -->
+  <a href="/photo-portfolio/">Back to the index</a>
 </body>
 </html>

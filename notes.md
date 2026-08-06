@@ -146,3 +146,52 @@ Verified in a real Chromium build rather than by inspection:
 - Right-click / drag-save policy — still undecided, and nothing has been done either way.
 - The 220px column floor should be re-checked once real photographs are in, on an actual
   phone rather than a resized desktop window.
+
+## 7. First GitHub Pages deployment failed
+
+The `pages build and deployment` run on `921937c` failed. Breakdown of the three jobs:
+
+- `build` — **succeeded** in 3 seconds. Jekyll processed the site and the artifact uploaded
+  cleanly. Nothing in the repo broke the build.
+- `report-build-status` — succeeded.
+- `deploy` — **failed**. It polled `Current status: deployment_in_progress` every 5 seconds
+  for ten minutes, then hit the action's own ceiling: `Timeout reached, aborting!`, followed
+  by `Canceled deployment with ID 921937c…`.
+
+So the artifact was fine and GitHub's Pages backend simply never finished publishing it.
+There is no error from our content anywhere in the log — the failure is a stall on
+GitHub's side, and the usual first move is to re-run it.
+
+Ruled out:
+
+- **DNS.** `www.martinmckenna.blog` is a CNAME to `martinjmckenna.github.io`, resolving to
+  the four GitHub Pages addresses (185.199.108–111.153). The apex resolves there too.
+  Correctly configured.
+- **A stray `CNAME` file.** There is none, which is right: the site is a project page
+  inheriting the domain from the user site, and committing a `CNAME` here would fight that.
+- **Size.** ~7MB across ~110 files, nowhere near any Pages limit.
+- **Our own workflow.** There isn't one. This is the built-in `dynamic/pages/…` workflow
+  that comes from the "Publish from branch" setting.
+
+Worth noting rather than concluding from: the deploy step evaluated the environment URL as
+`http://www.martinmckenna.blog/photo-portfolio/` — plain HTTP, not HTTPS. That is what
+GitHub reports when "Enforce HTTPS" is off, which normally means the TLS certificate for the
+custom domain has not been provisioned yet. It is consistent with a Pages backend that is
+still settling after the domain was configured, though it is not proof of the cause.
+
+I could not confirm what the site currently serves: this sandbox's network policy denies
+both `www.martinmckenna.blog` and `martinjmckenna.github.io`, so every probe came back as a
+proxy 403 rather than an answer from the origin.
+
+### One real bug found, unrelated to the failure
+
+The environment URL confirms the site is published under a path prefix,
+`/photo-portfolio/`, not at a domain root. Everything on the site uses relative URLs and is
+fine with that — except `404.html`, which linked to `/index.html` and would therefore have
+sent visitors to the root of the blog rather than back to the photo index. Now
+`/photo-portfolio/`.
+
+A relative link is not a fix here: GitHub Pages serves `404.html` at whatever path was
+requested, so `index.html` would resolve against the depth of the missing URL rather than
+the file's own location. That leaves this as the single URL on the site coupled to where it
+is deployed, which is commented in place.

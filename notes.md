@@ -108,3 +108,41 @@ controls.
   forward because they share every line of the navigation logic with the swipe handler.
   Escape returns to the index. Modified keypresses are left alone — those belong to the
   browser.
+
+## 6. Favicon, 404 and verification
+
+- **Favicon** is an inline SVG data URI on every page. It fixes the 404 the browser was
+  quietly logging on every request, and being a data URI it stays same-origin and costs no
+  extra request.
+- **404 page** (`404.html`), listed under the spec's V2 considerations and pulled forward
+  because it is a dozen lines and reuses the existing tokens. Needs the host to be pointed
+  at it; that is server configuration, not markup.
+- **`prefers-reduced-motion`** also pulled forward from V2 — three lines, and switching the
+  morph off for people who need it is not worth deferring.
+
+Verified in a real Chromium build rather than by inspection:
+
+- Grid renders 1 / 3 / 5 columns at 390px / 768px / 1440px.
+- The grid-to-detail morph runs. Slowing the animation and capturing mid-flight frames
+  confirms it behaves exactly as the spec predicts: the cropped thumbnail expands and the
+  cropped-off parts of the frame come into view partway through — a resize-and-reveal, not a
+  clean match-cut. It reads well; no change to the grid's cropping is warranted.
+- Format and resolution negotiation works: a 227px-wide tile at DPR 1 fetches
+  `demo-01-800.avif`, and a 712px detail image fetches the 800w AVIF rather than the 1600w.
+- With JavaScript disabled, tile → detail → next → prev → index all still work, and images
+  render. Nothing in the core experience depends on the script.
+- `prefers-reduced-motion: reduce` resolves to `@view-transition { navigation: none }`.
+- All three nav links hit-test to themselves at 44px tall at both 1280px and 390px, so
+  nothing overlays the touch targets.
+- All 11 pages load with no console errors, and every internal link resolves.
+
+### Still open
+
+- Open Graph tags. Deliberately skipped: unfurl images need absolute URLs, so this needs the
+  production domain, and it belongs with the build script alongside per-page metadata.
+- Alt-text policy for abstract images. The placeholders describe tonal structure
+  ("pale grey light falling away to near-black") which is a reasonable model for photographs
+  with no literal subject, but this should be a deliberate decision, not a default.
+- Right-click / drag-save policy — still undecided, and nothing has been done either way.
+- The 220px column floor should be re-checked once real photographs are in, on an actual
+  phone rather than a resized desktop window.

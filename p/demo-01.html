@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Photograph 1 of 9 — Photographs</title>
+<meta name="description" content="Pale grey light falling away to near-black across a soft horizontal band.">
+<link rel="stylesheet" href="../styles.css">
+</head>
+<body class="photo-page">
+
+<picture>
+  <source type="image/avif" sizes="min(100vw, 150vh)" srcset="../img/demo-01-400.avif 400w, ../img/demo-01-800.avif 800w, ../img/demo-01-1600.avif 1600w, ../img/demo-01-3200.avif 3200w">
+  <source type="image/webp" sizes="min(100vw, 150vh)" srcset="../img/demo-01-400.webp 400w, ../img/demo-01-800.webp 800w, ../img/demo-01-1600.webp 1600w, ../img/demo-01-3200.webp 3200w">
+  <img src="../img/demo-01-1600.jpg"
+    sizes="min(100vw, 150vh)"
+    srcset="../img/demo-01-400.jpg 400w, ../img/demo-01-800.jpg 800w, ../img/demo-01-1600.jpg 1600w, ../img/demo-01-3200.jpg 3200w"
+    width="3200" height="2133" fetchpriority="high" decoding="async"
+    style="view-transition-name: photo-demo-01"
+    alt="Pale grey light falling away to near-black across a soft horizontal band.">
+</picture>
+
+<nav class="photo-nav">
+  <a class="nav-index" href="../index.html#demo-01">Index</a>
+  <span class="counter" aria-hidden="true">1&#8202;/&#8202;9</span>
+  <a class="nav-prev" rel="prev" href="demo-09.html"><span aria-hidden="true">&#8592;</span> Prev</a>
+  <a class="nav-next" rel="next" href="demo-02.html">Next <span aria-hidden="true">&#8594;</span></a>
+</nav>
+
+<script src="../photo.js" defer></script>
+</body>
+</html>

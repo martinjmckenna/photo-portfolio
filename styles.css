@@ -20,7 +20,7 @@
   --fg-dim: #8f8f8f;
   --rule: #262626;
   --tile-bg: #1a1a1a;    /* shows through while an image is still loading */
-  --scrim: rgba(0, 0, 0, 0.55);
+  --scrim: rgba(0, 0, 0, 0.62);
 
   --page-pad: clamp(1rem, 3vw, 2rem);
   --ease: cubic-bezier(0.2, 0, 0, 1);
@@ -34,7 +34,7 @@
     --fg-dim: #6b6b6b;
     --rule: #e2e2e2;
     --tile-bg: #ededed;
-    --scrim: rgba(255, 255, 255, 0.7);
+    --scrim: rgba(251, 251, 251, 0.72);
   }
 }
 
@@ -58,6 +58,14 @@ body {
 img {
   display: block;
   max-width: 100%;
+}
+
+/* <picture> is only a wrapper for format negotiation and should never form a
+   box of its own — without this it sits between the layout container and the
+   <img> as an inline element, breaking percentage heights on the grid tile and
+   centring on the detail page. */
+picture {
+  display: contents;
 }
 
 a {
@@ -188,21 +196,45 @@ a {
   text-transform: uppercase;
 }
 
+/* On small viewports the photo runs full-bleed underneath the navigation, so
+   the labels need something behind them: a soft scrim along the top and bottom
+   edges. A monochrome collection will contain near-white and near-black frames
+   alike, and a gradient handles both without the crude look of a solid box
+   floating on the image. Over the empty letterbox surround it is invisible,
+   because it fades to exactly the surround colour. */
+.photo-nav::before,
+.photo-nav::after {
+  content: "";
+  position: fixed;
+  left: 0;
+  right: 0;
+  height: 5.5rem;
+  pointer-events: none;
+}
+
+.photo-nav::before {
+  top: 0;
+  background: linear-gradient(to bottom, var(--scrim), transparent);
+}
+
+.photo-nav::after {
+  bottom: 0;
+  background: linear-gradient(to top, var(--scrim), transparent);
+}
+
 .photo-nav a,
 .photo-nav .counter {
+  position: relative; /* above the scrim pseudo-elements */
   pointer-events: auto;
-  /* 44px minimum touch target, hit area padded out from the label. */
+  /* 44px minimum touch target — the labels are small, the hit area is not. */
   min-height: 44px;
   display: inline-flex;
   align-items: center;
   gap: 0.5em;
-  padding: 0 0.75rem;
+  padding: 0 0.5rem;
   color: var(--fg);
   text-decoration: none;
-  background: var(--scrim);
-  /* The scrim keeps labels legible over both ends of the tonal range, which a
-     monochrome site full of near-white and near-black frames will hit often. */
-  backdrop-filter: blur(6px);
+  text-shadow: 0 0 8px var(--scrim);
   transition: opacity 200ms var(--ease);
 }
 

@@ -58,3 +58,53 @@ nothing in `img/` is hand-maintained and the whole directory is disposable.
 The stylesheet also lays down the detail-page and 404 rules in the same file; those pages
 arrive in the next commits. One stylesheet for the whole site keeps the request count at one
 and is small enough not to warrant splitting.
+
+## 4. Photo detail pages
+
+Nine pages under `p/`, one per photograph. They were emitted once from a throwaway
+scaffold so nine near-identical files would not have to be typed out by hand; the files
+themselves are now the source of truth and are meant to be edited directly. No build step
+exists or is implied.
+
+- **Letterboxed.** `height: 100vh` then `height: 100dvh` on the same rule, per the spec:
+  the static unit is the fallback and the dynamic one takes over where supported, so the
+  image does not jump as a mobile address bar shows and hides.
+- **`<picture>` gets `display: contents`.** Without it the wrapper forms an inline box
+  between the layout container and the `<img>`, which breaks percentage heights on the grid
+  tile and centring on the detail page. Easy to miss because it only shows up once
+  `<picture>` replaces a bare `<img>`.
+- **Detail `sizes`** is `min(100vw, Nvh)`, where N is the photo's aspect ratio × 100 — a
+  letterboxed image is bounded by height as often as by width, and plain `100vw` would have
+  a portrait photo on a wide desktop download a variant several times larger than it
+  displays. If a browser does not understand `min()` in `sizes` the attribute is ignored and
+  it falls back to assuming 100vw, which is the old behaviour rather than a break.
+- **Navigation** is hardcoded `<a href>`: Index top left, position counter top right, Prev
+  and Next along the bottom, carrying `rel="prev"` / `rel="next"`. The sequence wraps, so
+  there are no dead ends and every page has the same shape.
+- **Prev/next are hand-maintained.** Inserting a photo into the middle of the sequence later
+  means editing the two neighbouring pages as well as adding the new one. The sequence
+  currently matches grid order, but nothing enforces that — they are independent by design.
+- **Nav over photo.** From 700px up the image is inset so the controls never sit on it.
+  Below that the photo is full-bleed and the labels sit over soft top and bottom gradient
+  scrims — a monochrome collection will contain near-white and near-black frames alike, so
+  the labels cannot rely on the image being dark. Over the empty letterbox surround the
+  scrims are invisible, since they fade to exactly the surround colour.
+- Hero image is `fetchpriority="high"` and not lazy — it is the LCP element on the page.
+
+## 5. Swipe and keyboard navigation
+
+`photo.js`, loaded `defer` on detail pages only. Both are shortcuts to links that already
+exist in the markup, so with JavaScript off everything still works through the visible
+controls.
+
+- Swipe: `touchstart`/`touchend`, 50px horizontal threshold. Beyond the spec's sketch it
+  also ignores gestures that are more vertical than horizontal (a scroll, not a swipe),
+  slow drags over 800ms (a drag, not a flick), and anything involving a second finger.
+- It also bails out when `visualViewport.scale > 1.05`. Pinch-to-zoom is native behaviour
+  that needs no code — but once someone has zoomed in, a horizontal drag is them panning
+  around the photo, and navigating out from under them would be hostile. Not fighting the
+  zoom is the one thing this script owes it.
+- Keyboard arrows are the desktop equivalent, listed in the spec's V2 notes and pulled
+  forward because they share every line of the navigation logic with the swipe handler.
+  Escape returns to the index. Modified keypresses are left alone — those belong to the
+  browser.

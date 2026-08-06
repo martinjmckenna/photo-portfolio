@@ -1,0 +1,54 @@
+# Publish the site to GitHub Pages.
+#
+# This replaces the built-in "Deploy from a branch" pipeline, whose deploy step
+# stalled in deployment_in_progress and was killed by its own ten-minute timeout
+# on two consecutive runs, with a valid ~7MB artifact both times.
+#
+# Two things differ from the built-in pipeline:
+#   - No Jekyll. The site is hand-authored HTML and has nothing to template, so
+#     the files are uploaded exactly as they sit in the repository.
+#   - The deploy step is one we can read, re-run and change.
+#
+# This is deployment plumbing, not a site build step: it does not generate,
+# transform or minify anything, so the "no build tools" rule in the spec still
+# holds. Requires Settings -> Pages -> Source to be set to "GitHub Actions".
+
+name: Deploy to GitHub Pages
+
+on:
+  # Manual only until the first green run confirms the source switch took
+  # effect; the push trigger goes in once it does.
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Let a running deployment finish rather than cancelling it — a half-applied
+# deploy is worse than a slightly stale one.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload the site as-is
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4

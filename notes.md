@@ -195,3 +195,50 @@ A relative link is not a fix here: GitHub Pages serves `404.html` at whatever pa
 requested, so `index.html` would resolve against the depth of the missing URL rather than
 the file's own location. That leaves this as the single URL on the site coupled to where it
 is deployed, which is commented in place.
+
+## 8. Pages deployment: second failure and the fix
+
+Run 2 (`6ab706d`) reproduced run 1 exactly: `build` succeeded, `deploy` sat in
+`deployment_in_progress` past the ten-minute mark. Two identical stalls in a row is not the
+signature of a transient incident, so the earlier "just re-run it" read was wrong.
+
+What the second run added:
+
+- The uploaded artifact is **7,293,852 bytes**, matching the full local site. So Jekyll
+  produced a complete build including all 93 image variants. Nothing is missing or
+  malformed — the failure is entirely in the publish step, downstream of a valid artifact.
+- The repo's own Pages settings are clean: source is the branch at `/ (root)`, and the
+  custom domain field is **empty**.
+
+### The domain, resolved
+
+`www.martinmckenna.blog` is not configured on this repo. It is inherited: GitHub's settings
+page describes custom domains as serving "from a domain other than `www.martinmckenna.blog`",
+and it fills that blank with the *account's default Pages host*. That confirms the domain is
+set on the user site repo (`martinjmckenna.github.io`), and a user-site custom domain
+propagates to every project page on the account, each served at `<domain>/<repo>/`.
+
+A consequence worth recording: `martinjmckenna.github.io` cannot be used as a prototyping
+host while that is true. GitHub 301-redirects the whole `username.github.io` host to the
+custom domain, project paths included. Serving this repo at `martinjmckenna.github.io/photo-portfolio/`
+would require clearing the domain from the blog, which is not on the table.
+
+So the site stays at `www.martinmckenna.blog/photo-portfolio/`. The blog is unaffected — the
+user site repo keeps serving the domain root and every other path. The one thing to watch is
+that a Jekyll page or post with the `photo-portfolio` slug would be shadowed by this project
+page taking that prefix.
+
+### Changes
+
+- **`.nojekyll`.** The site is hand-authored HTML with nothing to template, so running it
+  through Jekyll is pure downside: files beginning with `_` get dropped silently and
+  anything resembling Liquid syntax gets interpreted. Nothing here trips either today, which
+  is exactly why it is worth pinning before something does.
+- **`.github/workflows/pages.yml`.** Replaces the built-in branch pipeline with
+  `upload-pages-artifact` + `deploy-pages`: no Jekyll, and a deploy step whose logs we can
+  read and whose runs we can re-trigger. This is deployment plumbing rather than a site build
+  step — it generates and transforms nothing, so the spec's "no build tools" rule still holds.
+  It needs Settings → Pages → Source switched to "GitHub Actions" to work.
+- The trigger is `workflow_dispatch` only for now, deliberately: until the source is
+  switched, a push-triggered run would just fail and add noise next to the legacy pipeline's
+  own failures. The push trigger goes in after the first green run.

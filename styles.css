@@ -20,7 +20,6 @@
   --fg-dim: #8f8f8f;
   --rule: #262626;
   --tile-bg: #1a1a1a;    /* shows through while an image is still loading */
-  --scrim: rgba(0, 0, 0, 0.62);
 
   --page-pad: clamp(1rem, 3vw, 2rem);
   --ease: cubic-bezier(0.2, 0, 0, 1);
@@ -34,7 +33,6 @@
     --fg-dim: #6b6b6b;
     --rule: #e2e2e2;
     --tile-bg: #ededed;
-    --scrim: rgba(251, 251, 251, 0.72);
   }
 }
 
@@ -66,6 +64,15 @@ img {
    centring on the detail page. */
 picture {
   display: contents;
+}
+
+/* `display: contents` above promotes the picture's children into whatever
+   layout the picture itself sat in — and that includes the <source> elements,
+   which the UA stylesheet does not hide. They render nothing, but they are
+   still boxes: in a grid they claim tracks of their own and push the photograph
+   out of the centre. Hiding them leaves the <img> as the only item. */
+picture > source {
+  display: none;
 }
 
 a {
@@ -144,6 +151,10 @@ a {
 
 /* --- Photo detail page ---------------------------------------------------- */
 
+/* Two rows: the control bar, then everything left over for the photograph.
+   The bar is a real row rather than a fixed overlay, so the space it takes is
+   space the photograph was never offered — nothing is ever drawn on top of the
+   picture, at any viewport size. */
 .photo-page {
   background: var(--bg-photo);
   /* 100vh first as the fallback, then 100dvh where supported. Without the
@@ -152,89 +163,62 @@ a {
   height: 100vh;
   height: 100dvh;
   display: grid;
-  place-items: center;
+  /* minmax(0, …) rather than a bare 1fr: a bare fr track keeps an automatic
+     minimum of its content, so the row would grow to fit the image instead of
+     the image shrinking to fit the row, and the percentage max-height below
+     would have no definite height to resolve against. */
+  grid-template-rows: auto minmax(0, 1fr);
   overflow: hidden;
 }
 
 .photo-page img {
-  /* Letterboxed: the whole frame is always visible, scaled to fit, centred,
-     with the background filling whatever is left over. */
-  max-width: 100vw;
-  max-height: 100vh;
-  max-height: 100dvh;
+  /* Letterboxed into the second row: the whole frame is always visible, scaled
+     to fit, centred, with the background filling whatever is left over. The
+     percentages resolve against the row, which is the viewport minus the bar. */
+  grid-row: 2;
+  justify-self: center;
+  align-self: center;
+  max-width: 100%;
+  max-height: 100%;
   width: auto;
   height: auto;
   object-fit: contain;
 }
 
-/* From tablet width up, hold the photo clear of the navigation instead of
-   letting it run under the overlay. Below this the photo stays full-bleed and
-   the nav sits on top of it behind a scrim. */
-@media (min-width: 700px) {
-  .photo-page img {
-    max-width: calc(100vw - 9rem);
-    max-height: calc(100vh - 5.5rem);
-    max-height: calc(100dvh - 5.5rem);
-  }
-}
-
 /* --- Photo detail page: navigation ---------------------------------------- */
 
+/* One row across the top: Index on the left, then the counter and the two
+   arrows grouped on the right. Every control sits in the same band, above the
+   photograph rather than on it, in the same order as the markup. */
 .photo-nav {
-  position: fixed;
-  inset: 0;
-  pointer-events: none; /* only the links themselves are clickable */
-  /* Keep clear of notches and home indicators. */
-  padding: max(0.75rem, env(safe-area-inset-top)) max(0.75rem, env(safe-area-inset-right))
-    max(0.75rem, env(safe-area-inset-bottom)) max(0.75rem, env(safe-area-inset-left));
-  display: grid;
-  grid-template-columns: 1fr auto;
-  grid-template-rows: auto 1fr auto;
-  align-items: start;
+  grid-row: 1;
+  /* Keep clear of notches and rounded corners. */
+  padding: max(0.375rem, env(safe-area-inset-top)) max(0.5rem, env(safe-area-inset-right))
+    0.375rem max(0.5rem, env(safe-area-inset-left));
+  display: flex;
+  align-items: center;
+  gap: 0.125rem;
   font-size: 0.75rem;
   letter-spacing: 0.14em;
   text-transform: uppercase;
 }
 
-/* On small viewports the photo runs full-bleed underneath the navigation, so
-   the labels need something behind them: a soft scrim along the top and bottom
-   edges. A monochrome collection will contain near-white and near-black frames
-   alike, and a gradient handles both without the crude look of a solid box
-   floating on the image. Over the empty letterbox surround it is invisible,
-   because it fades to exactly the surround colour. */
-.photo-nav::before,
-.photo-nav::after {
-  content: "";
-  position: fixed;
-  left: 0;
-  right: 0;
-  height: 5.5rem;
-  pointer-events: none;
-}
-
-.photo-nav::before {
-  top: 0;
-  background: linear-gradient(to bottom, var(--scrim), transparent);
-}
-
-.photo-nav::after {
-  bottom: 0;
-  background: linear-gradient(to top, var(--scrim), transparent);
+/* The only thing separating the left anchor from the right-hand group. */
+.nav-index {
+  margin-right: auto;
 }
 
 .photo-nav a,
 .photo-nav .counter {
-  position: relative; /* above the scrim pseudo-elements */
-  pointer-events: auto;
-  /* 44px minimum touch target — the labels are small, the hit area is not. */
-  min-height: 44px;
+  /* 40px touch target rather than the usual 44: these are a secondary route on
+     a phone, where the swipe gesture in photo.js is the primary one. */
+  min-height: 40px;
   display: inline-flex;
   align-items: center;
   gap: 0.5em;
   padding: 0 0.5rem;
   color: var(--fg);
   text-decoration: none;
-  text-shadow: 0 0 8px var(--scrim);
   transition: opacity 200ms var(--ease);
 }
 
@@ -247,32 +231,6 @@ a {
   .photo-nav a:hover {
     opacity: 0.65;
   }
-}
-
-.nav-index {
-  grid-column: 1;
-  grid-row: 1;
-  justify-self: start;
-}
-
-.photo-nav .counter {
-  grid-column: 2;
-  grid-row: 1;
-  justify-self: end;
-}
-
-.nav-prev {
-  grid-column: 1;
-  grid-row: 3;
-  justify-self: start;
-  align-self: end;
-}
-
-.nav-next {
-  grid-column: 2;
-  grid-row: 3;
-  justify-self: end;
-  align-self: end;
 }
 
 /* --- 404 ------------------------------------------------------------------ */

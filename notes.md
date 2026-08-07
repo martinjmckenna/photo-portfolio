@@ -421,3 +421,73 @@ than with a readable error.
   needs doing from the GitHub UI: this environment's git proxy returns HTTP 403 on any
   ref-deletion push, so the branch cannot be removed from here. Its commits are all
   contained in the deploy branch, so it is redundant rather than load-bearing.
+
+## 12. Detail page: nothing on top of the photograph
+
+Three separate things were making the detail page worse than it needed to be. Only one of
+them was a design decision; the other two were bugs hiding behind it.
+
+**The photograph was not centred, and the cause was `display: contents`.** `picture` carries
+`display: contents` so the wrapper does not form a box of its own — but that promotes *all*
+of the picture's children into the parent layout, and the two `<source>` elements are
+children too. They render nothing, yet they are still boxes, and the UA stylesheet does not
+hide them. On the detail page that meant a grid with three rows instead of one:
+
+    grid-template-rows: 76.59px 76.61px 626.80px
+                        ^source  ^source  ^img
+
+The leftover vertical space was split three ways rather than two, and the photograph, being
+the third item, was pushed down. Measured at 393x780: 192px above the frame against 38px
+below, where centring should give 115/115. At 1280x900: 73 against 15. `picture > source
+{ display: none }` fixes it everywhere, including the homepage grid, and is worth keeping in
+mind as a general hazard of `display: contents` — it exposes children you forgot the element
+had.
+
+**The navigation was a fixed overlay.** `position: fixed; inset: 0` meant it reserved no
+space, so below 700px the photograph's `max-height: 100dvh` let it run underneath the
+controls. Prev and Next sat on the picture. The scrim gradients existed to make the labels
+readable in that situation, and they were invisible over the empty surround precisely
+because they faded to the surround colour — which meant the only place they were ever
+visible was on the photograph. In light mode that is a white wash across the bottom of the
+frame. The fix is not a better scrim: it is not overlapping the photograph at all.
+
+The page is now two grid rows — a control bar, then the photograph in whatever is left.
+Index sits at the left of the bar, the counter and the two arrows are grouped at the right,
+all four in document order with no reordering. The scrim pseudo-elements, the `text-shadow`,
+the `pointer-events` juggling and the `--scrim` token are all deleted; with nothing drawn on
+the picture, none of them had a job left. So are the `>= 700px` insets, which existed only
+to hold the photo clear of an overlay that no longer overlaps.
+
+**`1fr` was the wrong track.** A bare `1fr` keeps an automatic minimum equal to its content,
+so the row grew to fit the image rather than the image shrinking to fit the row, and
+`max-height: 100%` had no definite height to resolve against — the photo overflowed the
+viewport by 47px at 1280x900. `minmax(0, 1fr)` removes the minimum and makes the percentage
+resolvable.
+
+Touch targets went from 44px to 40px. The swipe gesture is the primary means of moving
+between photographs on a phone; these are the secondary route and can afford to be smaller.
+
+Measured after, at four viewports, with no overlap and no page scroll anywhere:
+
+| viewport | photo | before | above/below |
+|---|---|---|---|
+| 393x780 | 393x550 | 550 tall | 89 / 89 (was 192 / 38) |
+| 1280x900 | 606x848 | 812 tall | 0 / 0 |
+| 780x393 | 244x341 | — | 0 / 0 |
+| 834x1112 | 757x1060 | — | 0 / 0 |
+
+Worth being straight about what this did and did not buy. **On a phone in portrait the
+photograph did not get one pixel bigger**, and cannot: at 393px wide it is already full
+bleed, and a 0.71 frame in a 0.50 viewport is limited by width, not by anything the layout
+was doing. What changed there is that the slack is now even above and below instead of
+lopsided, and nothing is drawn on the picture. The size win is on larger viewports, where
+the vertical inset was costing more than the bar now costs: +36px of height at 1280x900, and
+much more for a landscape frame, since the 9rem horizontal inset is gone entirely.
+
+### Still open
+
+- The collection is all portrait, so the horizontal gain from dropping the 9rem inset is
+  currently theoretical. Worth re-measuring against a landscape frame when one arrives.
+- The slack on a phone is split evenly above and below the frame. Top-aligning it under the
+  bar instead would gather all the empty space at the bottom; centred reads as more
+  deliberate for a gallery, but it is a taste call rather than a settled one.

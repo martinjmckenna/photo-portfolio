@@ -388,3 +388,36 @@ network errors, picking AVIF at every step, at both 1280px and 390px wide.
 - The 220px column floor was judged against gradients and then re-judged on a phone against
   a real photograph. With eight portrait crops it still reads well, but the collection is
   now uniform in orientation — worth another look if landscape photographs join it.
+
+## 11. Deployed
+
+Run 31193254245 deployed the photographs to Pages: all five steps green, six seconds in the
+deploy step rather than the multi-minute `deployment_in_progress` poll the earlier runs
+went through.
+
+Getting there took one wrong turn worth recording. Dispatching the workflow on the feature
+branch failed in two seconds with no steps executed, no downloadable logs (the API 404s
+them) and an empty check-run body. That signature is the `github-pages` environment's
+deployment branch policy rejecting the ref before a runner is ever assigned — the same
+workflow, same event, on `claude/photography-portfolio-frontend-815muc` had run fine.
+GitHub surfaces that rejection nowhere the API can reach, so it has to be read off the
+shape of the failure. Merging into the allowed branch was the fix, and the merge was a
+clean fast-forward.
+
+The branch policy is worth knowing about before the next attempt to deploy from anywhere
+else: the environment permits exactly one branch, and any other ref fails this way rather
+than with a readable error.
+
+### Still open
+
+- Nobody has loaded the deployed site. This sandbox's network policy denies
+  `martinmckenna.blog` and `martinjmckenna.github.io` — a 403 from the proxy on every
+  request, the same wall section 7 hit. GitHub reports the deployment as successful, which
+  is not the same as the page rendering. Worth an eye on, in a browser: the grid, one
+  detail page, the morph between them, and whether the three black-and-white frames sit
+  well beside the five colour ones now that they are next to each other rather than
+  described in a caption file.
+- `claude/replace-gradients-with-photos-51lmw0` still exists on the remote. Deleting it
+  needs doing from the GitHub UI: this environment's git proxy returns HTTP 403 on any
+  ref-deletion push, so the branch cannot be removed from here. Its commits are all
+  contained in the deploy branch, so it is redundant rather than load-bearing.

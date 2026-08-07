@@ -347,3 +347,45 @@ errors, picking the AVIF variants.
   description is the line to change — the stylesheet does not need to.
 - `photos-src/` ships with the Pages artifact, which uploads the repository as-is. The
   originals should come off the branch once an import looks right.
+
+## 10. The real photographs
+
+Eight natural-light portraits, shot on a Nikon D90 in July 2024, imported with
+`tools/import-photos.py`. The gradients are gone: `img/` is now 72 files at 6.8MB, down
+from 93 files at 7.3MB, and `p/demo-NN.html` is replaced by one page per photograph named
+after its source file.
+
+- **All eight are portrait-orientation**, between 0.66 and 0.71 wide-over-tall. Every one
+  therefore tops out at the 1600px rung rather than 3200px: the aspect-class cap decides
+  that a portrait letterboxed into a landscape viewport is never displayed near 3200px
+  wide, and none of the sources would have reached it without upscaling anyway. The 3200px
+  rung is unused by this collection, which is the cap doing its job rather than a gap.
+- **The collection is mixed colour and black-and-white** — 4, 5 and 6 are monochrome, the
+  rest are in colour. That is worth knowing for two reasons. The homepage meta description
+  claimed "a collection of monochrome photographs", inherited from the abstract
+  placeholders, and is now wrong twice over: these are portraits, and only three of them
+  are monochrome. Changed to "a collection of natural-light portraits". The stylesheet's
+  monochrome palette is untouched — that is the chrome around the photographs, and it
+  still holds.
+- **Alt text** is a written sentence per photograph in `photos-src/captions.txt`, naming
+  the subject, the setting and the light, and saying "black and white" where that is what
+  a sighted visitor sees. Nothing is inferred about the people beyond what is visible in
+  the frame. This is the alt-text policy section 6 left open, now settled against real
+  photographs rather than gradients.
+
+Verified with the same checks as the importer itself: 195 asset references across all ten
+pages resolve, nothing in `img/` is orphaned, and Chromium walks the whole prev/next chain
+— eight clicks from the first photograph back to the first photograph — with no console or
+network errors, picking AVIF at every step, at both 1280px and 390px wide.
+
+### Still open
+
+- `photos-src/` holds 39MB of full-resolution originals and the Pages workflow uploads the
+  repository as-is, so they would ship with the site. They are kept on the branch for now
+  so the import stays re-runnable; they should come off before this reaches the branch that
+  deploys. Their history is already in the repository either way.
+- The deploy workflow only fires on `claude/photography-portfolio-frontend-815muc`, so
+  nothing here is live yet.
+- The 220px column floor was judged against gradients and then re-judged on a phone against
+  a real photograph. With eight portrait crops it still reads well, but the collection is
+  now uniform in orientation — worth another look if landscape photographs join it.

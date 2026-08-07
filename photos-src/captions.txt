@@ -8,5 +8,12 @@
 #
 # Describe what is in the frame, for someone who cannot see it. This text is also
 # used as the detail page's meta description.
-#
-# 01-harbour-wall.jpg | Wet harbour wall at low tide, ropes coiled against the stone.
+
+natural-light-photo-museum-martin-mckenna-1 | A person with closely cropped hair, in a blue zip jacket over a dark knit, facing the camera against a soft pink wall.
+natural-light-photo-museum-martin-mckenna-2 | A person with cropped hair and a dark jacket turned slightly away, standing before dense green foliage in dappled shade.
+natural-light-photo-museum-martin-mckenna-3 | A person in a blue jacket and dark trousers standing in profile against a grey block wall, head lowered, hands clasped behind their back, grass at their feet.
+natural-light-photo-museum-martin-mckenna-4 | Black and white: a person with long hair and a dark shirt looking off to one side, railings blurred behind them.
+natural-light-photo-museum-martin-mckenna-5 | Black and white: a person with long hair, chin raised, looking up and away from the camera, blurred stair railings behind.
+natural-light-photo-museum-martin-mckenna-6 | Black and white: a person with long hair and small drop earrings looking back over their shoulder, in a pale collared shirt.
+natural-light-photo-museum-martin-mckenna-7 | A person with long wavy hair glancing back over the shoulder of a light collared shirt, a column beside them and a building blurred behind.
+natural-light-photo-museum-martin-mckenna-8 | A person with long wavy hair, gold hoop earrings and a fine chain necklace, facing the camera in a white vest and pale jacket against a bright wall.

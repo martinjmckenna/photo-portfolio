@@ -538,3 +538,33 @@ Open, in rough order of value:
 - **Deployment plumbing.** The workflow uploads the repository as-is, which is why
   `photos-src/` is a hazard and why `notes.md`, `docs/` and `tools/` ship to visitors.
   Uploading only the site's own paths fixes all of that and is a small change.
+
+## 14. Moved to `main`
+
+`main` now exists and holds exactly what is deployed — created from
+`claude/photography-portfolio-frontend-815muc` at 505bb7c, byte-identical, no merge commit.
+The workflow triggers on both branches.
+
+**`main` cannot deploy yet, and the failing run is expected.** The `github-pages` environment
+permits exactly one branch, and it names the old working branch. Run 10, the first push to
+`main`, failed in two seconds with no steps, no runner assigned and no readable error — the
+same signature as run 4 and for the same reason (section 11). Run 9, the same commit pushed
+to the old branch, succeeded. Nothing is wrong with the code; the environment setting has not
+caught up with the branch layout.
+
+Two settings changes are needed, and neither can be made from a git client:
+
+1. **Settings → Environments → github-pages → Deployment branches**: name `main` instead of
+   `claude/photography-portfolio-frontend-815muc`.
+2. **Settings → General → Default branch**: set to `main`.
+
+After that, re-run the failed workflow and it will deploy from `main`. Then the old branch
+can be deleted and its entry dropped from the workflow's `branches:` list — in that order,
+because deleting it first would leave no branch the environment will accept, and the site
+could not be updated at all.
+
+**Neither old branch could be deleted from here.** This environment's git proxy returns
+HTTP 403 on any ref-deletion push — tried on both `--delete` and the `:refs/heads/…`
+refspec, with backoff — and the GitHub toolset available has no branch-delete call. So
+`claude/replace-gradients-with-photos-51lmw0` is still on the remote despite being fully
+contained in `main`, and both need deleting through the GitHub UI.

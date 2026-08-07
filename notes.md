@@ -350,7 +350,7 @@ errors, picking the AVIF variants.
 
 ## 10. The real photographs
 
-Eight natural-light portraits, shot on a Nikon D90 in July 2024, imported with
+Eight natural-light portraits, shot on a Nikon D90 on 20 July 2023, imported with
 `tools/import-photos.py`. The gradients are gone: `img/` is now 72 files at 6.8MB, down
 from 93 files at 7.3MB, and `p/demo-NN.html` is replaced by one page per photograph named
 after its source file.
@@ -491,3 +491,50 @@ much more for a landscape frame, since the 9rem horizontal inset is gone entirel
 - The slack on a phone is split evenly above and below the frame. Top-aligning it under the
   bar instead would gather all the empty space at the bottom; centred reads as more
   deliberate for a gallery, but it is a taste call rather than a settled one.
+
+## 13. Landscape trial, and the state of things at the end of the session
+
+A landscape photograph went through the pipeline as an experiment and was then reverted; the
+file is not in the repository. The findings are in `docs/landscape-experiment.md`. The short
+version: the detail page handled it without a special case and the recently-removed insets
+paid off properly for the first time (+48 wide, +36 tall at 1280x900 against the old CSS),
+and the uniform 4:5 grid crop is the one real question a wide frame raises — a design
+decision to revisit when there is more than one, not a defect.
+
+Getting that experiment to run exposed something worse than anything about landscape frames.
+The importer is a whole-collection build over `photos-src/`, and originals are deleted from
+the branch after every import so they are not published. Both policies are right on their
+own; together they mean the source of truth is normally empty, and adding one photograph
+required restoring 39MB from history first, purely to re-encode eight files that had not
+changed. A `--prune` run without that restore would have deleted the published collection.
+`docs/importer-and-incremental-updates.md` sets out the fix — a committed manifest, so that
+generating the HTML needs metadata only and encoding needs an original only for the
+photograph being added — along with the interim rule, which is now also at the top of the
+README: restore first, and read the dry-run count before writing.
+
+Two corrections to earlier entries. Section 10 dated the portraits to July 2024; the capture
+date is **20 July 2023** — the 2024 timestamp was Lightroom's modification date, not
+`DateTimeOriginal`. And the alt-text question section 6 left open is settled in practice but
+the *metadata* question it grew into is not: what a caption should contain, and whether it
+scrolls beneath the photograph, was discussed at length and deliberately left unbuilt.
+
+### Where this leaves the project
+
+Done and live: nine gradients replaced by eight photographs, an importer that builds the
+whole site from sources plus captions, and a detail page that draws nothing on top of the
+picture.
+
+Open, in rough order of value:
+
+- **The manifest.** Everything else is easier afterwards, and adding a photograph stops
+  being a hazard. `docs/importer-and-incremental-updates.md`.
+- **Captions and metadata.** Agreed in shape — structured storage, gallery-label rendering,
+  optional title and body — and unbuilt. The scrolling treatment discussed near the end
+  (photograph sized to the viewport, caption below the fold, page taller than the viewport)
+  is viable; the notes on it are that `dvh` must become `svh` or the layout jumps mid-scroll,
+  a sticky bar needs an opaque background, and a caption nobody knows to scroll to may as
+  well not exist.
+- **The grid crop**, once the collection stops being uniformly portrait.
+- **Deployment plumbing.** The workflow uploads the repository as-is, which is why
+  `photos-src/` is a hazard and why `notes.md`, `docs/` and `tools/` ship to visitors.
+  Uploading only the site's own paths fixes all of that and is a small change.

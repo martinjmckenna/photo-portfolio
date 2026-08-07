@@ -17,7 +17,12 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    branches: [claude/photography-portfolio-frontend-815muc]
+    # `main` is where the project lives now. The old working branch is kept here
+    # only so it keeps deploying until it is deleted — the github-pages
+    # environment permits exactly one branch, and until that setting names
+    # `main` instead, a push to `main` fails before a runner is assigned, with
+    # no log and no error text. See notes.md section 11.
+    branches: [main, claude/photography-portfolio-frontend-815muc]
   workflow_dispatch:
 
 permissions:

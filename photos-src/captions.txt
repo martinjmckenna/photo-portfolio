@@ -1,0 +1,12 @@
+# Alt text, one photograph per line:
+#
+#     <source filename> | <description>
+#
+# The filename may be given with or without its extension. Blank lines and lines
+# starting with # are ignored. A photograph with no line here is still imported,
+# but gets stand-in alt text derived from its filename.
+#
+# Describe what is in the frame, for someone who cannot see it. This text is also
+# used as the detail page's meta description.
+#
+# 01-harbour-wall.jpg | Wet harbour wall at low tide, ropes coiled against the stone.

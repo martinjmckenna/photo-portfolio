@@ -298,3 +298,52 @@ trade-off is that a longer collection means a lot of scrolling; if that starts t
 once there are more than a dozen photographs, dropping the floor to around 160px would give
 two columns at phone width. Leaving it at 220px for now: with real photographs the larger
 single column is the better first impression.
+
+## 9. Import pipeline for the real photographs
+
+`tools/import-photos.py` replaces the hand-editing loop the README used to describe.
+Sources go in `photos-src/`, and one run writes `img/`, writes `p/<slug>.html`, and rewrites
+the `<ul class="grid">` block in `index.html`. Everything the old instructions asked for by
+hand — the three `srcset` lists per photo, the `width`/`height` attributes, the per-photo
+`sizes`, the matching `view-transition-name`s and the wrapping prev/next chain — is now
+derived from the source files.
+
+This is the build script the notes kept deferring to, and it stays on the same side of the
+"no build tools" line as `make-placeholders.py`: it runs at development time, its output is
+committed as plain HTML, and nothing is installed or executed to serve the site.
+
+- **Ordering is filename order**, sorted naturally so `2-` precedes `10-`. Making the
+  filenames the ordering mechanism means sequencing the collection is renaming files, with
+  no manifest to keep in sync. `--order exif` sequences by capture time instead.
+- **Slugs come from filenames**, so URLs are readable and stable rather than `demo-NN`.
+- **sRGB conversion and EXIF rotation** happen on the way in. Both are silent-failure cases
+  otherwise: an Adobe RGB export renders desaturated in a browser if its profile is dropped
+  without converting, and an orientation flag is honoured by some encoders and ignored by
+  others. Normalising once at import means the variants are all right way up and right
+  colour regardless of what the source was.
+- **The master cap by aspect class** is carried over from `make-placeholders.py` rather
+  than reinvented — same reasoning, now applied to real sources, and a source smaller than
+  a ladder rung is never upscaled to fill it.
+- **Alt text cannot be generated**, so it is the one input the script asks for, in
+  `photos-src/captions.txt`. A photo without a caption is still imported — a missing
+  description should not block a build — but it gets obviously-placeholder alt text and is
+  listed at the end of the run. That also settles the open question from section 6: the
+  alt-text policy is a human sentence per photograph, authored alongside the photo.
+- **Deleting is opt-in.** `--prune` removes what the run did not produce; without it stale
+  files are only listed. The default run writes nothing at all, so the first thing you see
+  is a summary rather than a changed working tree.
+
+Verified end to end before any real photographs existed, against synthetic sources chosen
+for the awkward cases: a 4000px landscape, a source smaller than the bottom rung, a PNG, an
+EXIF-rotated portrait, mixed `2-`/`10-` numbering, and a 9:16 crop. All 157 asset references
+across the generated pages resolve, no file in `img/` is orphaned, the prev/next chain forms
+one complete cycle, and Chromium loads the grid and a detail page with no console or network
+errors, picking the AVIF variants.
+
+### Still open
+
+- `index.html` still describes the collection as "monochrome photographs", and the site's
+  own chrome is monochrome by design. If the real photographs are in colour, that meta
+  description is the line to change — the stylesheet does not need to.
+- `photos-src/` ships with the Pages artifact, which uploads the repository as-is. The
+  originals should come off the branch once an import looks right.

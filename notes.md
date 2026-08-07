@@ -380,12 +380,11 @@ network errors, picking AVIF at every step, at both 1280px and 390px wide.
 
 ### Still open
 
-- `photos-src/` holds 39MB of full-resolution originals and the Pages workflow uploads the
-  repository as-is, so they would ship with the site. They are kept on the branch for now
-  so the import stays re-runnable; they should come off before this reaches the branch that
-  deploys. Their history is already in the repository either way.
-- The deploy workflow only fires on `claude/photography-portfolio-frontend-815muc`, so
-  nothing here is live yet.
+- The 39MB of full-resolution originals came off the branch before deploying, since the
+  Pages workflow uploads the repository as-is and would have published them at guessable
+  URLs. `photos-src/captions.txt` stays: the alt text is authored, not generated, and is
+  the one input a re-import cannot reproduce. Restoring the originals to re-run the
+  importer is `git checkout e19a28a -- photos-src/`.
 - The 220px column floor was judged against gradients and then re-judged on a phone against
   a real photograph. With eight portrait crops it still reads well, but the collection is
   now uniform in orientation — worth another look if landscape photographs join it.
